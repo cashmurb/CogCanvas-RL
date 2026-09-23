@@ -168,8 +168,6 @@ Scaling beyond 8×8 would require a different approach:
 
 None of these are hyperparameter changes. Each would be a new project with its own plan.
 
-The current project's scope is complete: Rung 0 works, and both research questions are answered.
-
 ## License
 
 MIT.
