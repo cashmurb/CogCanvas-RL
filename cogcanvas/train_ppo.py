@@ -28,9 +28,12 @@ class ProgressCallback(BaseCallback):
 
 
 def train(total_timesteps=500_000, log_dir="runs/ppo_rung0", seed=0,
-          use_prm=False):
+          use_prm=False, prm=None):
     env_kwargs = {"seed": seed, "max_steps": 12}
-    if use_prm:
+    if prm is not None:
+        env_kwargs["prm"] = prm
+    elif use_prm:
+        from cogcanvas.prm import HeuristicPRM
         env_kwargs["prm"] = HeuristicPRM()
 
     env = Monitor(GymCanvasEnv(**env_kwargs))
@@ -46,7 +49,7 @@ def train(total_timesteps=500_000, log_dir="runs/ppo_rung0", seed=0,
         gae_lambda=0.95,
         clip_range=0.2,
         ent_coef=0.005,
-        verbose=0,   # quieter; use our callback for progress
+        verbose=0,   
         tensorboard_log=log_dir,
         seed=seed,
     )
@@ -60,6 +63,18 @@ def train(total_timesteps=500_000, log_dir="runs/ppo_rung0", seed=0,
 if __name__ == "__main__":
     import sys
     use_prm = "--prm" in sys.argv
-    log_dir = "runs/ppo_rung0_prm" if use_prm else "runs/ppo_rung0_noprm"
-    print(f"Training with PRM={use_prm}, log_dir={log_dir}")
-    train(total_timesteps=500_000, log_dir=log_dir, use_prm=use_prm)
+    use_learned = "--learned-prm" in sys.argv
+
+    if use_learned:
+        from cogcanvas.prm_learned import LearnedPRM
+        prm = LearnedPRM(model_path="runs/prm/learned_prm.pt")
+        log_dir = "runs/ppo_rung0_learned"
+        use_prm = True
+    elif use_prm:
+        log_dir = "runs/ppo_rung0_prm"
+    else:
+        log_dir = "runs/ppo_rung0_noprm"
+        prm = None
+
+    print(f"Training: learned_prm={use_learned}, heuristic_prm={use_prm and not use_learned}")
+    train(total_timesteps=500_000, log_dir=log_dir, use_prm=use_prm, prm=prm)
