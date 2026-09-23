@@ -8,6 +8,8 @@ A local prototype of an AI agent that edits a canvas step-by-step to turn a clut
 Everything else including the environment, the reward, the training, the logging is scaffolding to answer those. 
 
 ## What's build
+| Phase | What | Status |
+|---|---|---|
 | 1 | Environment (`CanvasEnv`) | ✓ |
 | 2 | Reward: F1 + clutter + abstraction + gate | ✓ |
 | 3 | Baselines: lazy, random, scripted | ✓ |
