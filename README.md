@@ -115,10 +115,6 @@ where `gate = 1` only if `F1 > 0.9`
 | Heuristic PRM | 86.0% | 6.6 |
 | Learned PRM | 82.0% | 6.4 |
 
-## What's next
-
-Rung 1: 16×16 grid, 4 targets. Same loop, larger canvas. Tests whether the architecture scales.
-
 ## License
 
 MIT.
