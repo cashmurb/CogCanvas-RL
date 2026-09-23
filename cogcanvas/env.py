@@ -12,7 +12,7 @@ class CanvasEnv:
     Cell index -> (y, x) via divmod(index, size)
     """
 
-    def __init__(self, size=8, n_targets=3, max_steps=24, seed=None, w_task=10.0, w_clutter=0.5, w_abs=0.5, w_step=0.01, gate_threshold=0.9, w_shaping=5.0):
+    def __init__(self, size=8, n_targets=3, max_steps=24, seed=None, w_task=10.0, w_clutter=0.5, w_abs=0.5, w_step=0.01, gate_threshold=0.9, w_shaping=5.0, prm=None):
         self.size = size 
         self.n_targets = n_targets 
         self.max_steps = max_steps
@@ -28,6 +28,7 @@ class CanvasEnv:
         self.gate_threshold = gate_threshold
         self.cap = 2 * n_targets
         self.w_shaping = w_shaping
+        self.prm = prm 
         
 
         # state
@@ -35,7 +36,7 @@ class CanvasEnv:
         self.target = None
         self.t = 0 
         self.done = False
-        self.prev_f1 = 0.0
+        self.prev_potential = 0.0
 
     # core API 
     def reset(self):
@@ -48,7 +49,11 @@ class CanvasEnv:
         self.canvas = np.zeros((self.size, self.size), dtype=np.int8)
         self.t = 0
         self.done = False
-        self.prev_f1 = 0.0
+        
+        if self.prm is not None:
+            self.prev_potential = self.prm.score(self._obs())
+        else: 
+            self.prev_potential = f1_score(self.canvas, self.target)
         return self._obs()
 
     def step(self, action):
@@ -76,10 +81,14 @@ class CanvasEnv:
         clutter_r = 0.0
         abstraction_r = 0.0
 
-        # F1-delta shaping: fires every step, rewards progress
+        if self.prm is not None:
+            current_potential = self.prm.score(self._obs())
+        else:
+            current_potential = f1_score(self.canvas, self.target)
+        
+        shaping_r = self.w_shaping * (current_potential - self.prev_potential)
+        self.prev_potential = current_potential
         current_f1 = f1_score(self.canvas, self.target)
-        shaping_r = self.w_shaping * (current_f1 - self.prev_f1)
-        self.prev_f1 = current_f1
 
         if self.done:
             if current_f1 > 0.85:
@@ -118,6 +127,7 @@ class CanvasEnv:
             "abstraction_bonus": abstraction_r,
             "step_cost": self.w_step,
             "steps": self.t,
+            "prm_score": float(self.prev_potential),
         }
             
     

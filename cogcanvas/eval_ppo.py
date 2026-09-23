@@ -2,6 +2,7 @@ import numpy as np
 from stable_baselines3 import PPO
 from cogcanvas.gym_wrapper import GymCanvasEnv
 
+
 def evaluate(model_path, n_episodes=50, seed=100, deterministic=True):
     model = PPO.load(model_path)
     rewards = []
@@ -9,7 +10,7 @@ def evaluate(model_path, n_episodes=50, seed=100, deterministic=True):
     lengths = []
 
     for ep in range(n_episodes):
-        env = GymCanvasEnv(seed=seed + ep)
+        env = GymCanvasEnv(seed=seed + ep, max_steps=12)
         obs, _ = env.reset()
         done = False
         total = 0.0
@@ -24,17 +25,20 @@ def evaluate(model_path, n_episodes=50, seed=100, deterministic=True):
         rewards.append(total)
         matches.append(info["match"])
         lengths.append(steps)
-    
+
     rewards = np.array(rewards)
     matches = np.array(matches)
     lengths = np.array(lengths)
 
     print(f"Episodes: {n_episodes}")
-    print (f"Mean reward: {rewards.mean():+.3f} (±{rewards.std():.3f})")
+    print(f"Mean reward: {rewards.mean():+.3f} (±{rewards.std():.3f})")
     print(f"Mean match (F1): {matches.mean():.3f}")
     print(f"Mean steps: {lengths.mean():.1f}")
     print(f"Success rate (F1 > 0.9): {(matches > 0.9).mean():.1%}")
 
+
 if __name__ == "__main__":
-    evaluate("runs/ppo_rung0/final_model")
-    
+    import sys
+    path = sys.argv[1] if len(sys.argv) > 1 else "runs/ppo_rung0/final_model"
+    print(f"Loading model from: {path}")
+    evaluate(path)
